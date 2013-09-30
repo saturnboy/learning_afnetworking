@@ -1,6 +1,4 @@
 <?php
-require 'base.php';
-
 date_default_timezone_set('America/Denver');
 
 function add_pic_to_dat($img, $path = 'dat.json', $blocking = true) {
@@ -19,7 +17,7 @@ function add_pic_to_dat($img, $path = 'dat.json', $blocking = true) {
 
 		flock($fp, LOCK_UN); 
 		fclose($fp); 
-		return $out;
+		return json_encode($img);
 	}
 	return false;
 }
