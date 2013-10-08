@@ -10,4 +10,6 @@
 
 @interface MainController : UITableViewController
 
+@property (nonatomic) NSArray *pics;
+
 @end

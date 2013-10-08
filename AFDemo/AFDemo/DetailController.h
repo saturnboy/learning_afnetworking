@@ -13,6 +13,6 @@
 @property (nonatomic,weak) IBOutlet UITextView *descTxt;
 @property (nonatomic,weak) IBOutlet UIImageView *picImg;
 
-@property (nonatomic,weak) NSString *desc;
+@property (nonatomic) NSDictionary *pic;
 
 @end

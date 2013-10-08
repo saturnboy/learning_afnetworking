@@ -27,30 +27,34 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    //dummy data
+    self.pics = @[
+                  @{ @"title":@"my title", @"desc":@"my desc" },
+                  @{ @"title":@"other title", @"desc":@"other desc" },
+                  ];
 
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
- 
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+    //setup refresh control
+    UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
+    [refresh addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
+    self.refreshControl = refresh;
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - TableView data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 1;
+    return (self.pics ? 1 : 0);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 5;
+    return ([self.pics count] ? [self.pics count] : 0);
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -58,11 +62,28 @@
     static NSString *CellIdentifier = @"MyCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
-    // Configure the cell...
-    cell.textLabel.text = [NSString stringWithFormat:@"row%d", indexPath.row];
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%d--Bacon ipsum dolor sit amet kevin fatback frankfurter, biltong kielbasa leberkas meatball pork loin. Bacon prosciutto beef ribs capicola. Shankle short ribs turducken, pork chop ham hock meatloaf capicola corned beef jerky. Spare ribs shank chicken short ribs pastrami meatball. Ribeye pancetta salami, kielbasa jerky shoulder chuck ground round venison capicola rump spare ribs bresaola jowl.", indexPath.row];
+    //setup cell
+    cell.textLabel.text = self.pics[indexPath.row][@"title"];
+    cell.detailTextLabel.text = self.pics[indexPath.row][@"desc"];
     
     return cell;
+}
+
+#pragma mark - Pull to refresh
+
+- (void)refresh:(id)sender {
+    NSLog(@"Refresh");
+    
+    //add mock data
+    NSString *title2 = [NSString stringWithFormat:@"new title %d", self.pics.count + 1];
+    NSString *desc2 = [NSString stringWithFormat:@"new desc %d", self.pics.count + 1];
+    NSMutableArray *p2 = [self.pics mutableCopy];
+    p2[p2.count] = @{ @"title":title2, @"desc":desc2 };
+    self.pics = [NSArray arrayWithArray:p2];
+    
+    //refresh the table
+    [self.tableView reloadData];
+    [self.refreshControl endRefreshing];
 }
 
 #pragma mark - Navigation
@@ -71,10 +92,9 @@
 {
     if ([segue.identifier isEqualToString:@"DetailPush"]) {
         NSLog(@"DetailPush");
-        UITableViewCell *cell = (UITableViewCell*)sender;
+        NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
         DetailController *detail = [segue destinationViewController];
-        detail.title = cell.textLabel.text;
-        detail.desc = cell.detailTextLabel.text;
+        detail.pic = self.pics[indexPath.row];
     }
 }
 

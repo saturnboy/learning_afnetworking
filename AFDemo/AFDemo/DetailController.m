@@ -25,7 +25,11 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-	self.descTxt.text = self.desc;
+    
+    //setup view
+    self.title = self.pic[@"title"];
+	self.descTxt.text = self.pic[@"desc"];
+    //self.picImg = self.pic[@"pic"];
 }
 
 - (void)didReceiveMemoryWarning {
