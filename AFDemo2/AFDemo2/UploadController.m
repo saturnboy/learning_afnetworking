@@ -7,6 +7,7 @@
 //
 
 #import "UploadController.h"
+#import "AFNetworking.h"
 
 @interface UploadController ()
 
@@ -26,13 +27,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-	// Do any additional setup after loading the view.
 }
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - UITextView delegates
@@ -48,7 +47,7 @@
 - (void)textViewDidEndEditing:(UITextView *)textView {
     if (textView.text.length == 0) {
         textView.text = @"description...";
-        textView.textColor = [UIColor colorWithWhite: 0.67 alpha:1];
+        textView.textColor = [UIColor colorWithWhite:0.67f alpha:1.0f];
     }
     [textView resignFirstResponder];
 }
@@ -63,14 +62,14 @@
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         picker.sourceType = UIImagePickerControllerSourceTypeCamera;
     } else {
-        NSLog(@"NO CAMERA");
+        NSLog(@"Picker: no camera");
         picker.sourceType = UIImagePickerControllerSourceTypeSavedPhotosAlbum;
     }
     [self presentViewController:picker animated:YES completion:nil];
-
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info {
+    NSLog(@"Picker: selected");
 	[picker dismissViewControllerAnimated:YES completion:nil];
 	self.picImg.image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
     self.picBtn.hidden = YES;
@@ -78,19 +77,61 @@
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    NSLog(@"Picker: cancel");
+    [picker dismissViewControllerAnimated:YES completion:nil];
     self.picBtn.hidden = NO;
     self.picImg.hidden = YES;
-}
-
-// be sure status bar is hidden when showing camera
-- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated {
-    [[UIApplication sharedApplication] setStatusBarHidden:YES];
 }
 
 #pragma mark - Send Button
 
 -(IBAction) sendClicked:(id)sender {
     NSLog(@"SEND!");
+
+    UIBarButtonItem *orig = self.navigationItem.rightBarButtonItem;
+    UIActivityIndicatorView *uploading = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+    uploading.hidesWhenStopped = YES;
+    [uploading startAnimating];
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:uploading];
+    self.navigationItem.rightBarButtonItem.enabled = NO;
+    
+    NSDictionary *params = @{ @"title":self.titleTxt.text,
+                           @"desc":([self.descTxt.text isEqualToString:@"description..."] ? @"" : self.descTxt.text) };
+    
+    NSURLRequest *request = [[AFHTTPRequestSerializer serializer]
+                             multipartFormRequestWithMethod:@"POST"
+                             URLString:@"http://saturnboy.com/afnetworking/upload.php"
+                             parameters:params
+                             constructingBodyWithBlock:^(id<AFMultipartFormData> formData) {
+
+         NSData *dat = UIImageJPEGRepresentation(self.picImg.image, 1.0f);
+         [formData appendPartWithFileData:dat name:@"pic" fileName:@"tmp.jpg" mimeType:@"image/jpeg"];
+    }];
+    
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
+    
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Upload: success! resp=%@", responseObject);
+        
+        //re-init view
+        [uploading stopAnimating];
+        self.navigationItem.rightBarButtonItem = orig;
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+        self.titleTxt.text = @"";
+        self.descTxt.text = @"description...";
+        self.picBtn.hidden = NO;
+        self.picImg.hidden = YES;
+        
+        [self.navigationController popViewControllerAnimated:YES];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Upload: err=%@", error);
+        [uploading stopAnimating];
+        self.navigationItem.rightBarButtonItem = orig;
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+    }];
+    
+    [operation start];
 }
 
 @end

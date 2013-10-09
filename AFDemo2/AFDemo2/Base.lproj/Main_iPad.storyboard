@@ -154,6 +154,7 @@
                         <outlet property="descTxt" destination="Hgt-8Q-6mI" id="Y7K-u1-msd"/>
                         <outlet property="picBtn" destination="BmY-Lc-BEY" id="7uo-wi-UBp"/>
                         <outlet property="picImg" destination="tkh-cO-tph" id="3GP-wp-C1q"/>
+                        <outlet property="titleTxt" destination="aHe-xc-slJ" id="AQ2-IH-xhT"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="an6-Fr-88a" userLabel="First Responder" sceneMemberID="firstResponder"/>

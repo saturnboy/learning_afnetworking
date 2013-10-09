@@ -8,6 +8,8 @@
 
 #import "MainController.h"
 #import "DetailController.h"
+#import "AFNetworking.h"
+#import "UIImageView+AFNetworking.h"
 
 @interface MainController ()
 
@@ -28,16 +30,18 @@
 {
     [super viewDidLoad];
     
-    //dummy data
-    self.pics = @[
-                  @{ @"title":@"my title", @"desc":@"my desc" },
-                  @{ @"title":@"other title", @"desc":@"other desc" },
-                  ];
+    //init data
+    self.pics = nil;
 
     //setup refresh control
     UIRefreshControl *refresh = [[UIRefreshControl alloc] init];
     [refresh addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
     self.refreshControl = refresh;
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self refresh:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -63,8 +67,12 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier forIndexPath:indexPath];
     
     //setup cell
-    cell.textLabel.text = self.pics[indexPath.row][@"title"];
-    cell.detailTextLabel.text = self.pics[indexPath.row][@"desc"];
+    NSDictionary *pic = self.pics[indexPath.row];
+    cell.textLabel.text = pic[@"title"];
+    cell.detailTextLabel.text = pic[@"desc"];
+    
+    NSURL *url = [NSURL URLWithString:[@"http://saturnboy.com/afnetworking/" stringByAppendingString:pic[@"pic"]]];
+    [cell.imageView setImageWithURL:url placeholderImage:[UIImage imageNamed:@"LittleHolder"]];
     
     return cell;
 }
@@ -72,18 +80,23 @@
 #pragma mark - Pull to refresh
 
 - (void)refresh:(id)sender {
-    NSLog(@"Refresh");
+    NSURL *URL = [NSURL URLWithString:@"http://saturnboy.com/afnetworking/list.php"];
+    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
     
-    //add mock data
-    NSString *title2 = [NSString stringWithFormat:@"new title %d", self.pics.count + 1];
-    NSString *desc2 = [NSString stringWithFormat:@"new desc %d", self.pics.count + 1];
-    NSMutableArray *p2 = [self.pics mutableCopy];
-    p2[p2.count] = @{ @"title":title2, @"desc":desc2 };
-    self.pics = [NSArray arrayWithArray:p2];
+    AFHTTPRequestOperation *operation = [[AFHTTPRequestOperation alloc] initWithRequest:request];
+    operation.responseSerializer = [AFJSONResponseSerializer serializer];
     
-    //refresh the table
-    [self.tableView reloadData];
-    [self.refreshControl endRefreshing];
+    [operation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        NSLog(@"Refresh");
+        self.pics = responseObject;
+        [self.tableView reloadData];
+        [self.refreshControl endRefreshing];
+    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Refresh: err=%@", error);
+        [self.refreshControl endRefreshing];
+    }];
+    
+    [operation start];
 }
 
 #pragma mark - Navigation

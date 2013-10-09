@@ -7,6 +7,7 @@
 //
 
 #import "DetailController.h"
+#import "UIImageView+AFNetworking.h"
 
 @interface DetailController ()
 
@@ -27,9 +28,12 @@
     [super viewDidLoad];
     
     //setup view
-    self.title = self.pic[@"title"];
-	self.descTxt.text = self.pic[@"desc"];
-    //self.picImg = self.pic[@"pic"];
+    NSLog(@"pic=%@", self.pic);
+    self.title = ([self.pic[@"title"] length] > 0 ? self.pic[@"title"] : @"<title>");;
+	self.descTxt.text = ([self.pic[@"desc"] length] > 0 ? self.pic[@"desc"] : @"<desc>");
+    
+    NSURL *picUrl = [NSURL URLWithString:[@"http://saturnboy.com/afnetworking/" stringByAppendingString:self.pic[@"pic"]]];
+    [self.picImg setImageWithURL:picUrl placeholderImage:[UIImage imageNamed:@"BigHolder"]];
 }
 
 - (void)didReceiveMemoryWarning {

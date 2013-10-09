@@ -10,6 +10,7 @@
 
 @interface UploadController : UIViewController <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextViewDelegate>
 
+@property (nonatomic, weak) IBOutlet UITextField *titleTxt;
 @property (nonatomic, weak) IBOutlet UITextView *descTxt;
 @property (nonatomic, weak) IBOutlet UIButton *picBtn;
 @property (nonatomic, weak) IBOutlet UIImageView *picImg;
