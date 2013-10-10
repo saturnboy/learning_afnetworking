@@ -78,6 +78,7 @@
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
     self.picBtn.hidden = NO;
     self.picImg.hidden = YES;
 }
